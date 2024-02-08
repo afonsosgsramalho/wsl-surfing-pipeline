@@ -14,11 +14,28 @@ class Wsl:
             return response.text
         else:
             raise Exception('Failed to fetch the page')
+ 
+    def get_athlete(self, html):
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+            name = soup.find('div', {'class': 'avatar-text-primary'}).text
+            country = soup.find('div', {'class': 'country-name'}).text
+            bio = soup.find('div', {'class': 'new-athlete-bio-stats'})
+            value = bio.find_all('div', {'class': 'value'})
 
-    def get_athletes(self, html):
-        soup = BeautifulSoup(html, 'html.parser')
+            values = []
 
-    def get_competitions(self, html):
+            for v in value:
+                values.append(v.text.strip())
+
+            _, _, age, height, weight, hometown = values
+
+            return [name, country, int(age[:2]), height[-6:], weight[-5:], hometown]
+        
+        except:
+            return f'athlete {name} could not be processed'
+        
+    def get_competition(self, html):
         soup = BeautifulSoup(html, 'html.parser')
 
     def get_ranking(self, year):
@@ -48,5 +65,8 @@ class Wsl:
     
 
 wsl = Wsl()
-html = wsl.fetch_page('/athletes/tour/mct?year=2023')
-print(wsl.get_last_update_ranking(html))
+# html = wsl.fetch_page('/athletes/tour/mct?year=2023')
+# print(wsl.get_last_update_ranking(html))
+html2 = wsl.fetch_page('/athletes/10192/lucas-vicente')
+print(wsl.get_athlete(html2))
+
