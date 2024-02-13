@@ -9,7 +9,8 @@ class Wsl:
         self.base_url = 'https://www.worldsurfleague.com'
 
     def fetch_page(self, page):
-        response = requests.get(self.base_url + page)
+        # response = requests.get(self.base_url + page)
+        response = requests.get(page)
         if response.status_code == 200:
             return response.text
         else:
@@ -21,6 +22,7 @@ class Wsl:
 
             name = soup.find('div', {'class': 'avatar-text-primary'}).text
             country = soup.find('div', {'class': 'country-name'}).text
+            name_country = name + country
             bio = soup.find('div', {'class': 'new-athlete-bio-stats'})
             value = bio.find_all('div', {'class': 'value'})
 
@@ -31,27 +33,12 @@ class Wsl:
 
             stance, _, age, height, weight, hometown = values
 
-            return [name, country, stance, int(age[:2]), height[-6:], weight[-5:], hometown]
+            return [name, country, name_country, stance, int(age[:2]), height[-6:], weight[-5:], hometown]
         
         except:
-            return f'Athlete {name} could not be processed'
+            print(f'Athlete {name} could not be processed')
 
-    def get_competition(self, html):
-        try:
-            soup = BeautifulSoup(html, 'html.parser')
-
-            event = soup.find('h1', {'class': 'event-information__title'}).text
-            data_range = soup.find('span', {'class': 'event-information__meta-item event-information__meta-item--date-range'}).text
-            start_date = data_range.split('-')[0] + data_range[-4:].strip()
-            start_date_object = datetime.strptime(start_date, '%b %d %Y').date()
-            end_date = data_range.split('-')[1].replace(',', '').strip()
-            end_date_object = datetime.strptime(end_date, '%b %d %Y').date()
-            state = soup.find('span', {'class': 'status-module__status'}).text
-
-            return [event, start_date_object, end_date_object, state]
-
-        except:
-            return f'Event {event} could not be processed'
+        return None
         
     def get_ranking(self, year):
         url = f'https://www.worldsurfleague.com/athletes/tour/mct?year={str(year)}'
@@ -82,8 +69,7 @@ class Wsl:
 
 # wsl = Wsl()
 # print(wsl.get_ranking(2023))
-# html2 = wsl.fetch_page('/athletes/3962/barron-mamiya')
+# html2 = wsl.fetch_page('https://www.worldsurfleague.com/athletes/3962/barron-mamiya')
 # print(wsl.get_athlete(html2))
-# html3 = wsl.fetch_page('/events/2024/ct/196/lexus-pipe-pro/main')
-# print(wsl.get_competition(html3))
+
 
