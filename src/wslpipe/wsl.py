@@ -49,11 +49,12 @@ class Wsl:
             ['Athlete'] + [str(i) for i in range(1, number_columns - 5 + 1)] + ['erase3']
 
         df = df.drop(columns=['erase1', 'erase2', 'erase3'], axis=1)
+        df_melted = df.melt(id_vars=['Ranking', 'Athlete'],var_name='Number', value_name='Score')
+        df_melted_cleaned = df_melted[~df_melted['Athlete'].str.contains(
+            'Mid-Season Cut Line', na=False)]
+        df_melted_cleaned.reset_index(drop=True, inplace=True)
 
-        df_melted = df.melt(id_vars=['Ranking', 'Athlete'],
-                            var_name='Number', value_name='Score')
-
-        return df_melted
+        return df_melted_cleaned
     
 
     def get_last_update_ranking(self, html):
@@ -68,7 +69,7 @@ class Wsl:
     
 
 # wsl = Wsl()
-# print(wsl.get_ranking(2023))
+# print(wsl.get_ranking(2019))
 # html2 = wsl.fetch_page('https://www.worldsurfleague.com/athletes/3962/barron-mamiya')
 # print(wsl.get_athlete(html2))
 

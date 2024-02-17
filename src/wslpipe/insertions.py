@@ -1,9 +1,9 @@
 from utils.db import DB
+from psycopg2.extras import execute_values
 from configparser import ConfigParser
 from wsl import Wsl
 
 import requests
-from bs4 import BeautifulSoup
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from random import randint
@@ -45,22 +45,27 @@ def insert_athlete(athlete_page):
 
     return None  
     
-def insert_ranking(ranking_page):
+def insert_ranking(year):
     try:
-        html = wsl.fetch_page(ranking_page)
-        ranking_df = wsl.get_ranking(html)
+        ranking_df = wsl.get_ranking(year)
+        ranking_df['created_at'] = _get_current_time()
+        ranking_df['Year'] = year
 
         db = DB('postgres', 'wsl', 'changeme', 'localhost')
         cursor = db.connect_cursor()
-        for row in ranking_df.reset_index().to_dict('rows'):
-            query = """
-            INSERT into rankings(ranking, athlete, event, score, created_at) values(%s, %s, %s, %s, %s);
-            """ % (row['Ranking'], row['Athlete'], row['Number'], row['Score'], _get_current_time())
-            cursor.execute(query)
+
+        tuples = [tuple(x) for x in ranking_df[['Ranking', 'Athlete', 'Number', 'Score', 'created_at', 'Year']].to_numpy()]
+        query = """
+        INSERT INTO rankings (ranking, athlete, event, score, created_at, year)
+        VALUES %s;
+        """
+        execute_values(cursor, query, tuples)
+
         db.commit()
+        cursor.close()
         db.close_connection()
 
-        return f'{ranking_df[0]} inserted'
+        return f'ranking of year {year} inserted'
 
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -74,6 +79,7 @@ def building_historic():
 
 if __name__ == '__main__':
     START_YEAR = 2010
+    END_YEAR = 2024
     wsl = Wsl()
     db = DB('postgres', 'wsl', 'changeme', 'localhost')
     cursor = db.connect_cursor()
@@ -82,20 +88,22 @@ if __name__ == '__main__':
     urls = get_athletes_url(xml_athletes)
     current_time = _get_current_time()
 
-    id = 1
-    for url in urls:
-        id += 1
-        cursor.execute('SELECT * FROM cache_logs WHERE link = %s', (url, ))
-        link_exists = cursor.fetchone()
+    for year in range(START_YEAR, END_YEAR + 1):
+        insert_ranking(year)
+        print(f'{year} inserted')
+        sleep(randint(1, 5))
 
-        if link_exists:
-            print(f'Record {url} already exists')
-        else:
-            cursor.execute('INSERT INTO cache_logs(id, link, updated_at) VALUES(%s, %s, %s)',
-                           (id, url, current_time))
-            db.commit()
-            print(insert_athlete(url))
-            sleep(randint(1, 5))
+    # for url in urls:
+    #     cursor.execute('SELECT * FROM cache_logs WHERE link = %s', (url, ))
+    #     link_exists = cursor.fetchone()
+
+    #     if link_exists:
+    #         print(f'Record {url} already exists')
+    #     else:
+    #         cursor.execute('INSERT INTO cache_logs(link, updated_at) VALUES(%s, %s)',
+    #                        (url, current_time))
+    #         db.commit()
+    #         print(insert_athlete(url))
+    #         sleep(randint(1, 5))
 
     db.close_connection()
-
