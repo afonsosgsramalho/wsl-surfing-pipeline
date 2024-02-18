@@ -48,13 +48,12 @@ def insert_athlete(athlete_page):
 def insert_ranking(year):
     try:
         ranking_df = wsl.get_ranking(year)
-        ranking_df['created_at'] = _get_current_time()
         ranking_df['Year'] = year
 
         db = DB('postgres', 'wsl', 'changeme', 'localhost')
         cursor = db.connect_cursor()
 
-        tuples = [tuple(x) for x in ranking_df[['Ranking', 'Athlete', 'Number', 'Score', 'created_at', 'Year']].to_numpy()]
+        tuples = [tuple(x) for x in ranking_df[['Ranking', 'Athlete', 'Number', 'Score', 'updated_at', 'Year']].to_numpy()]
         query = """
         INSERT INTO rankings (ranking, athlete, event, score, created_at, year)
         VALUES %s;
@@ -72,38 +71,55 @@ def insert_ranking(year):
 
         return None
     
-# Only use when rebuilding all DBs
-def building_historic():
-    pass
-
-
-if __name__ == '__main__':
+# Only use when rebuilding DB
+def building_historic_rankings():
     START_YEAR = 2010
-    END_YEAR = 2024
-    wsl = Wsl()
-    db = DB('postgres', 'wsl', 'changeme', 'localhost')
-    cursor = db.connect_cursor()
-
-    xml_athletes = 'https://www.worldsurfleague.com/rss/sitemap_athletes.xml'
-    urls = get_athletes_url(xml_athletes)
-    current_time = _get_current_time()
+    END_YEAR = _get_current_time().year
 
     for year in range(START_YEAR, END_YEAR + 1):
         insert_ranking(year)
         print(f'{year} inserted')
         sleep(randint(1, 5))
 
-    # for url in urls:
-    #     cursor.execute('SELECT * FROM cache_logs WHERE link = %s', (url, ))
-    #     link_exists = cursor.fetchone()
+    db.close_connection()
 
-    #     if link_exists:
-    #         print(f'Record {url} already exists')
-    #     else:
-    #         cursor.execute('INSERT INTO cache_logs(link, updated_at) VALUES(%s, %s)',
-    #                        (url, current_time))
-    #         db.commit()
-    #         print(insert_athlete(url))
-    #         sleep(randint(1, 5))
+# Only use when rebuilding DB
+def building_historic_athletes():
+    xml_athletes = 'https://www.worldsurfleague.com/rss/sitemap_athletes.xml'
+    urls = get_athletes_url(xml_athletes)
+    current_time = _get_current_time()
+
+    for url in urls:
+        cursor.execute('SELECT * FROM cache_logs WHERE link = %s', (url, ))
+        link_exists = cursor.fetchone()
+
+        if link_exists:
+            print(f'Record {url} already exists')
+        else:
+            cursor.execute('INSERT INTO cache_logs(link, updated_at) VALUES(%s, %s)',
+                           (url, current_time))
+            db.commit()
+            print(insert_athlete(url))
+            sleep(randint(1, 5))
 
     db.close_connection()
+
+if __name__ == '__main__':
+    wsl = Wsl()
+    db = DB('postgres', 'wsl', 'changeme', 'localhost')
+    cursor = db.connect_cursor()
+    
+    cursor.execute("SELECT MAX(created_at) FROM rankings;")
+    max_value = cursor.fetchone()[0]
+
+    if wsl.get_last_update_ranking() > max_value:
+        insert_ranking(_get_current_time.year)
+        print('ranking updated')
+    else:
+        print('not necessary to update ranking')
+
+    building_historic_athletes()
+
+
+
+    
