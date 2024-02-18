@@ -67,12 +67,5 @@ class Wsl:
         df_melted_cleaned.reset_index(drop=True, inplace=True)
 
         return df_melted_cleaned
-    
-    
-
-# wsl = Wsl()
-# print(wsl.get_ranking(2019))
-# html2 = wsl.fetch_page('https://www.worldsurfleague.com/athletes/3962/barron-mamiya')
-# print(wsl.get_athlete(html2))
 
 
