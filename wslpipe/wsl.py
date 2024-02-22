@@ -41,7 +41,7 @@ class Wsl:
         return None
 
     def get_last_update_ranking(self):
-        url = f'https://www.worldsurfleague.com/athletes/tour/mct?year={str(datetime.now().year)}'
+        url = f'{self.base_url}/athletes/tour/mct?year={str(datetime.now().year)}'
         soup = BeautifulSoup(self.fetch_page(url), 'html.parser')
 
         month, day, year = ' '.join(str(soup.find('div', {'class': 'athletes-tour-intro__notes'}).find_all_next('p')[0])
@@ -52,7 +52,7 @@ class Wsl:
         return date_object
 
     def get_ranking(self, year):
-        url = f'https://www.worldsurfleague.com/athletes/tour/mct?year={str(year)}'
+        url = f'{self.base_url}/athletes/tour/mct?year={str(year)}'
         date_updated = self.get_last_update_ranking()
         df = pd.read_html(url)[0]
 

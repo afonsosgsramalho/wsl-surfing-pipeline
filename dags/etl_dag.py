@@ -19,6 +19,7 @@ def my_etl():
 
     current_year = datetime.now().year
     data_manager.update_rankings_if_needed(current_year)
+    data_manager.build_historic_athletes()
 
 default_args = {
     'owner': 'airflow',
@@ -33,7 +34,7 @@ with DAG(
     "wsl_etl",
     default_args=default_args,
     description='wsl etl dag',
-    schedule_interval='*/5 * * * *',
+    schedule_interval='30 11 * * 0',
     start_date=datetime(2023, 1, 1),
     catchup=False,
     tags=['example'],
