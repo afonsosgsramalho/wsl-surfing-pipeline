@@ -48,8 +48,7 @@ class WSLDataManager:
                 self.db.commit()
             return f'{athlete_data[0]} inserted'
         except Exception as e:
-            print(f"An error occurred: {e}")
-            return None
+            return 'This athlete doesnt have the full attributes to be processed'
 
     def insert_ranking(self, year):
         """Inserts ranking data for a specific year into the database."""
@@ -63,9 +62,20 @@ class WSLDataManager:
                 self.db.commit()
             return f'Ranking of year {year} inserted'
         except Exception as e:
-            print(f"An error occurred: {e}")
-            return None
-
+            return f"An error occurred: {e}"
+        
+    def delete_ranking(self, year):
+        """Deletes ranking data for a specific year into the database."""
+        try:
+            ranking_df = self.wsl.get_ranking(year)
+            ranking_df['Year'] = year
+            with self.db.connect_cursor() as cursor:
+                cursor.execute(f"DELETE FROM rankings WHERE year = {year};")
+                self.db.commit()
+            return f'Ranking of year {year} deleted'
+        except Exception as e:
+            return f"An error occurred: {e}"
+        
     def build_historic_data(self):
         """Rebuilds the database with historical rankings and athlete data."""
         self.build_historic_rankings()
@@ -108,6 +118,8 @@ class WSLDataManager:
         last_wsl_update = self.wsl.get_last_update_ranking()
 
         if last_wsl_update > last_db_update:
+            if last_wsl_update.year == last_db_update.year:
+                self.delete_ranking(year)
             self.insert_ranking(year)
             print(f"Ranking for {year} updated.")
         else:
