@@ -2,6 +2,7 @@ import sys
 project_root = '/home/vboxuser/programming/python_projects/wsl_pipeline'
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
+import configparser
 
 from wslpipe.etl import WSLDataManager
 from wslpipe.wsl import Wsl
@@ -12,8 +13,15 @@ from datetime import datetime, timedelta
 
 
 def my_etl():
-    db_credentials = {'dbname': 'wsl', 'user': 'postgres',
-                      'password': 'changeme', 'host': 'localhost'}
+    config = configparser.ConfigParser()
+    config.read('wslpipe/utils/database.ini')
+    db_credentials = {
+        'dbname': config.get('DEFAULT', 'POSTGRES_DB'), 
+        'user': config.get('DEFAULT', 'POSTGRES_USER'), 
+        'password': config.get('DEFAULT', 'POSTGRES_PASSWORD'),
+        'host': config.get('DEFAULT', 'POSTGRES_HOST'),
+    }
+
     wsl_instance = Wsl()
     data_manager = WSLDataManager(db_credentials, wsl_instance)
 
@@ -35,7 +43,7 @@ with DAG(
     default_args=default_args,
     description='wsl etl dag',
     schedule_interval='30 11 * * 0',
-    start_date=datetime(2023, 1, 1),
+    start_date=datetime(2024, 1, 1),
     catchup=False,
     tags=['example'],
 ) as dag:
