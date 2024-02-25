@@ -5,8 +5,6 @@ if project_root not in sys.path:
 
 from .utils.db import DB
 from psycopg2.extras import execute_values
-from configparser import ConfigParser
-from wslpipe.wsl import Wsl
 
 import requests
 import xml.etree.ElementTree as ET
