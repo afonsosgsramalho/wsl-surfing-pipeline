@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: wsl
+
+  airflow:
+    image: apache/airflow:latest
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:changeme@postgres/wsl
+    ports:
+      - "8080:8080"  # Airflow webserver UI
+
+  streamlit:
+    build: .
+    restart: always
+    ports:
+      - "8501:8501"  # Streamlit web app
+    depends_on:
+      - postgres
