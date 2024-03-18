@@ -1,7 +1,6 @@
 import sys
-project_root = '/home/vboxuser/programming/python_projects/wsl_pipeline'
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from wslpipe.utils.db import DB
 from dags.config_db import *

@@ -1,28 +1,61 @@
 version: '3'
 
+x-airflow-common:
+  &airflow-common
+  image: apache/airflow:latest
+  env_file:
+    - airflow.env
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./database:/opt/airflow/database
+    - ./pages:/opt/airflow/pages
+    - ./pipelines:/opt/airflow/pipelines
+   # - ./airflow.cfg:/opt/airflow/airflow.cfg
+    - ./requirements.txt:/opt/airflow/requirements.txt
+  depends_on:
+    - postgres
+    - redis
+
 services:
   postgres:
-    image: postgres
-    restart: always
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5433:5432"
+
+  postgres_app:
+    image: postgres:13
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: changeme
-      POSTGRES_DB: wsl
-
-  airflow:
-    image: apache/airflow:latest
-    restart: always
-    depends_on:
-      - postgres
-    environment:
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:changeme@postgres/wsl
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: airflow_reddit
     ports:
-      - "8080:8080"  # Airflow webserver UI
+      - "5434:5432"
 
-  streamlit:
-    build: .
-    restart: always
+  redis:
+    image: redis:latest
     ports:
-      - "8501:8501"  # Streamlit web app
-    depends_on:
-      - postgres
+      - "6379:6379"
+
+  airflow-init:
+    <<: *airflow-common
+    command: >
+      bash -c "pip install -r /opt/airflow/requirements.txt && airflow db init && airflow db upgrade && airflow users create --username admin --firstname admin --lastname admin --role Admin --email airflow@airflow.com --password admin"
+    restart: "no"
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+
+  airflow-worker:
+    <<: *airflow-common
+    command: celery worker

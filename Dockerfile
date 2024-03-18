@@ -1,8 +1,5 @@
 FROM python:3.11
 
-#set directory for the app
-WORKDIR /app
-
 # Copy the dependencies file to the working directory
 COPY requirements.txt .
 

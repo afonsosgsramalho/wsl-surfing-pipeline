@@ -1,7 +1,6 @@
-import sys
-project_root = '/home/vboxuser/programming/python_projects/wsl_pipeline'
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
     
 from wslpipe.etl import WSLDataManager
 from wslpipe.wsl import Wsl
@@ -49,7 +48,6 @@ with DAG(
     catchup=False,
     tags=['example'],
 ) as dag:
-
     insert_info = PythonOperator(
         task_id='insert_info',
         python_callable=my_etl,
