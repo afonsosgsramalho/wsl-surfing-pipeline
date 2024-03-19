@@ -12,6 +12,7 @@ class DB:
                 host=host,
                 port='5432'
             )
+
         except Exception as e:
             print(f"The connection was not established: {e}")
 
