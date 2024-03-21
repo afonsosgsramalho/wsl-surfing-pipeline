@@ -17,7 +17,8 @@ CREATE TABLE "rankings" (
   "athlete" varchar,
   "event" varchar,
   "score" integer,
-  "created_at" timestamp
+  "created_at" timestamp,
+  "year" integer
 );
 
 CREATE TABLE "cache_logs" (

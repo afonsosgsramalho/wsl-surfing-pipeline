@@ -14,8 +14,10 @@ from time import sleep
 
 class WSLDataManager:
     def __init__(self, db_credentials, wsl_instance):
+        print('ola')
         self.db = DB(**db_credentials)
         self.wsl = wsl_instance
+        print('adeus')
 
     @staticmethod
     def _get_current_time():
@@ -97,7 +99,7 @@ class WSLDataManager:
                     print(f'Record {url} already exists')
                 else:
                     cursor.execute(
-                        'INSERT INTO cache_logs(link, updated_at) VALUES(%s, %s)', (url, self._get_current_time()))
+                        'INSERT INTO cache_logs(link, created_at) VALUES(%s, %s)', (url, self._get_current_time()))
                     self.db.commit()
                     print(self.insert_athlete(url))
                     sleep(randint(1, 5))
@@ -111,10 +113,15 @@ class WSLDataManager:
         
     def update_rankings_if_needed(self, year):
         """Updates the rankings for a given year if the last update is older than the current WSL update."""
+        print('rankings 1')
         last_db_update = self.get_last_db_update()
+        print('rankings 2')
         last_wsl_update = self.wsl.get_last_update_ranking()
+        print('rankings 3')
 
-        if last_wsl_update > last_db_update:
+        print(last_wsl_update)
+        print(last_db_update)
+        if last_wsl_update.date() > last_db_update:
             if last_wsl_update.year == last_db_update.year:
                 self.delete_ranking(year)
             self.insert_ranking(year)

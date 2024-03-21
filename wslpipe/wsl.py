@@ -41,12 +41,15 @@ class Wsl:
         return None
 
     def get_last_update_ranking(self):
+        print('update_ranking 10')
         url = f'{self.base_url}/athletes/tour/mct?year={str(datetime.now().year)}'
         soup = BeautifulSoup(self.fetch_page(url), 'html.parser')
 
-        month, day, year = ' '.join(str(soup.find('div', {'class': 'athletes-tour-intro__notes'}).find_all_next('p')[0])
+        print('update_ranking 11')
+        _, _, month, day, year = ' '.join(str(soup.find('div', {'class': 'athletes-tour-intro__notes'}).find_all_next('p')[0])
                                     .replace('<p>', '').replace('</p>', '').replace(',', '').split()[3:]).split()
         date_string = f'{day}/{month}/{year}'
+        print('update_ranking 12')
         date_object = datetime.strptime(date_string, "%d/%B/%Y")
 
         return date_object
@@ -64,6 +67,8 @@ class Wsl:
         df_melted = df.melt(id_vars=['Ranking', 'Athlete'],var_name='Number', value_name='Score')
         df_melted['updated_at'] = date_updated
         df_melted_cleaned = df_melted[~df_melted['Athlete'].str.contains('Mid-Season Cut Line', na=False)]
+        df_melted_cleaned = df_melted[~df_melted['Athlete'].str.contains('Final 5 Cutoff', na=False)]
+        df_melted_cleaned = df_melted[~df_melted['Athlete'].str.contains('CT Requalification Line', na=False)]
         df_melted_cleaned.reset_index(drop=True, inplace=True)
 
         return df_melted_cleaned

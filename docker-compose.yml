@@ -262,7 +262,7 @@ services:
   #     dockerfile: Dockerfile
   #   command: streamlit run app.py
   #   volumes:
-  #     - ./app.py:/app/app.py
+  #     - ./app.py:/opt/airflow/app.py
   #   ports:
   #     - "8501:8501"
   #   depends_on:

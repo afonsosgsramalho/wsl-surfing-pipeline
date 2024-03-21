@@ -1,6 +1,6 @@
 *.txt
 database.ini
-__pycache__
+# __pycache__
 wsl_venv
 config_db.py
 *.env

@@ -9,6 +9,7 @@ from config_db import *
 from airflow.models.dag import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
+import time
 
 
 def my_etl():
@@ -24,7 +25,8 @@ def my_etl():
         data_manager = WSLDataManager(db_credentials, wsl_instance)
 
         current_year = datetime.now().year
-        data_manager.update_rankings_if_needed(current_year)
+        # data_manager.update_rankings_if_needed(current_year)
+        # data_manager.build_historic_rankings()
         data_manager.build_historic_athletes()
     
     except Exception as e:
